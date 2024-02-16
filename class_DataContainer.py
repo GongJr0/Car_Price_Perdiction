@@ -16,6 +16,7 @@ class DataContainer:
         self.info
     
     def load_data(self) -> None:
+        '''Takes no arguments. Loads data from file path passed on instance initialization. Supports all file types supported by pandas.'''
         match self.path.split('.')[-1]:
             case 'csv':
                 self.data = pd.read_csv(self.path)
@@ -49,22 +50,26 @@ class DataContainer:
                 raise ValueError('File type not supported. Refer to pandas documentation for supported file types.')
             
     def optimize_int(self) -> None:
+        '''Takes no arguments. Optimizes integer columns to the smallest possible integer type.'''
         for col in self.data.select_dtypes(include=int).columns:
             self.data[col] = pd.to_numeric(self.data[col], downcast='integer')
             
     def optimize_float(self) -> None:
+        '''Takes no arguments. Optimizes float columns to the smallest possible float type.'''
         for col in self.data.select_dtypes(include=float).columns:
             self.data[col] = pd.to_numeric(self.data[col], downcast='float')
     
-    def encode_str(self, exclude:str) -> None:
+    def encode_str(self, exclude:list) -> None:
+        '''args: exclude - list of columns to exclude from encoding. Maps unique string values to integers for compatiblility with non-categorical models.'''
         for col in self.data.select_dtypes(include=object).columns:
-            if col != exclude:
+            if col not in exclude:
                 enum =  {val: i for i, val in enumerate(list(self.data[col].unique()))}
                 self.data[col] = pd.to_numeric(self.data[col].map(enum), downcast='integer')
             else:
                 pass
             
     def split_data(self, label: str, drop: list) -> None:
+        '''args: label - column name to be used as label. drop - list of column names to be dropped from features. Splits data into features and label.'''
         if label in drop:
             raise ValueError('Label column cannot be dropped.')
         
